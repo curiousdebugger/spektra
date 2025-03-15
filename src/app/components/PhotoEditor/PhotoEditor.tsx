@@ -20,9 +20,6 @@ import {
   ChevronLeft,
   ChevronDown,
   Image as ImageIcon,
-  Crop as CropIcon,
-  Check,
-  X,
   Sun,
   Moon,
 } from "lucide-react";
@@ -177,7 +174,7 @@ export function PhotoEditor() {
       let b = data[i + 2];
 
       // Convert to HSL for initial luminance value
-      const [h, s, l] = rgbToHsl(r, g, b);
+      const [, , l] = rgbToHsl(r, g, b);
 
       // Apply exposure (affects brightness multiplicatively)
       const exposureFactor = Math.pow(2, adjustments.exposure / 100);
@@ -617,7 +614,7 @@ export function PhotoEditor() {
       let b = data[i + 2];
 
       // Convert to HSL for initial luminance value
-      const [h, s, l] = rgbToHsl(r, g, b);
+      const [, , l] = rgbToHsl(r, g, b);
 
       // Apply all adjustments in the same order as the preview
       // Exposure
@@ -625,15 +622,6 @@ export function PhotoEditor() {
       r = Math.min(255, Math.max(0, r * exposureFactor));
       g = Math.min(255, Math.max(0, g * exposureFactor));
       b = Math.min(255, Math.max(0, b * exposureFactor));
-
-      // Contrast
-      const contrastFactor = Math.pow((adjustments.contrast + 100) / 100, 2);
-      r = Math.min(255, Math.max(0, 128 + (r - 128) * contrastFactor));
-      g = Math.min(255, Math.max(0, 128 + (g - 128) * contrastFactor));
-      b = Math.min(255, Math.max(0, 128 + (b - 128) * contrastFactor));
-
-      // Apply all other adjustments...
-      // (The rest of the adjustment logic remains the same as in applyAdjustments)
 
       // Final clamp
       data[i] = Math.min(255, Math.max(0, r));
