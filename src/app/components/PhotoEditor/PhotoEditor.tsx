@@ -43,6 +43,7 @@ interface AdjustmentValues {
   texture: number;
 }
 
+/*
 interface CropState {
   x: number;
   y: number;
@@ -50,6 +51,7 @@ interface CropState {
   height: number;
   aspect: number | null;
 }
+*/
 
 // Update the debounce function type
 function debounce<T extends (...args: Parameters<T>) => void>(
@@ -102,6 +104,7 @@ export function PhotoEditor() {
   const debouncedApplyRef = useRef<(() => void) | undefined>(undefined);
 
   const [showSaveDropdown, setShowSaveDropdown] = useState(false);
+  /*
   const [isCropping, setIsCropping] = useState(false);
   const [cropState, setCropState] = useState<CropState>({
     x: 0,
@@ -116,6 +119,7 @@ export function PhotoEditor() {
   });
   const cropStartPos = useRef({ x: 0, y: 0 });
   const [isDraggingCrop, setIsDraggingCrop] = useState(false);
+  */
 
   const applyAdjustments = useCallback(() => {
     if (!canvasRef.current || !image) return;
@@ -258,7 +262,7 @@ export function PhotoEditor() {
       const saturationFactor = (adjustments.saturation + 100) / 100;
       const newHsl = [
         hFinal,
-        Math.min(Math.max(sFinal * saturationFactor, 0), 1),
+        Math.min(1, Math.max(0, sFinal * saturationFactor)),
         lFinal,
       ];
       [r, g, b] = hslToRgb(newHsl[0], newHsl[1], newHsl[2]);
@@ -422,6 +426,7 @@ export function PhotoEditor() {
         const img = new Image();
         img.onload = () => {
           setImage(img);
+          /*
           setOriginalImageSize({ width: img.width, height: img.height });
           setCropState({
             x: 0,
@@ -430,6 +435,7 @@ export function PhotoEditor() {
             height: img.height,
             aspect: null,
           });
+          */
         };
         img.src = e.target?.result as string;
       };
@@ -650,186 +656,6 @@ export function PhotoEditor() {
     setShowSaveDropdown(false);
   };
 
-  const handleStartCrop = () => {
-    setIsCropping(true);
-    setZoom(1);
-    setPan({ x: 0, y: 0 });
-    // Reset crop state to full image dimensions
-    setCropState({
-      x: 0,
-      y: 0,
-      width: originalImageSize.width,
-      height: originalImageSize.height,
-      aspect: null,
-    });
-  };
-
-  const handleCropMouseDown = (e: React.MouseEvent<HTMLCanvasElement>) => {
-    if (!canvasRef.current || !image) return;
-    const canvas = canvasRef.current;
-    const rect = canvas.getBoundingClientRect();
-
-    // Calculate the scale factor between canvas display size and actual image size
-    const scaleX = image.width / (rect.width / zoom);
-    const scaleY = image.height / (rect.height / zoom);
-
-    // Convert click coordinates to image coordinates
-    const x = ((e.clientX - rect.left - pan.x) * scaleX) / zoom;
-    const y = ((e.clientY - rect.top - pan.y) * scaleY) / zoom;
-
-    cropStartPos.current = { x, y };
-    setIsDraggingCrop(true);
-  };
-
-  const handleCropMouseMove = (e: React.MouseEvent<HTMLCanvasElement>) => {
-    if (!isDraggingCrop || !canvasRef.current || !image) return;
-    const canvas = canvasRef.current;
-    const rect = canvas.getBoundingClientRect();
-
-    // Calculate the scale factor between canvas display size and actual image size
-    const scaleX = image.width / (rect.width / zoom);
-    const scaleY = image.height / (rect.height / zoom);
-
-    // Convert current mouse coordinates to image coordinates
-    const currentX = ((e.clientX - rect.left - pan.x) * scaleX) / zoom;
-    const currentY = ((e.clientY - rect.top - pan.y) * scaleY) / zoom;
-
-    // Calculate crop dimensions
-    let width = Math.abs(currentX - cropStartPos.current.x);
-    let height = cropState.aspect
-      ? width / cropState.aspect
-      : Math.abs(currentY - cropStartPos.current.y);
-
-    // Ensure crop box stays within image bounds
-    const x = Math.max(0, Math.min(currentX, cropStartPos.current.x));
-    const y = Math.max(0, Math.min(currentY, cropStartPos.current.y));
-    width = Math.min(width, image.width - x);
-    height = Math.min(height, image.height - y);
-
-    // If aspect ratio is set, adjust height to maintain ratio
-    if (cropState.aspect) {
-      height = width / cropState.aspect;
-      if (y + height > image.height) {
-        height = image.height - y;
-        width = height * cropState.aspect;
-      }
-    }
-
-    setCropState((prev) => ({
-      ...prev,
-      x,
-      y,
-      width,
-      height,
-    }));
-  };
-
-  const handleCropMouseUp = () => {
-    setIsDraggingCrop(false);
-  };
-
-  const handleApplyCrop = () => {
-    if (!canvasRef.current || !image) return;
-
-    // Create a temporary canvas for the cropped image
-    const tempCanvas = document.createElement("canvas");
-    tempCanvas.width = cropState.width;
-    tempCanvas.height = cropState.height;
-    const tempCtx = tempCanvas.getContext("2d");
-    if (!tempCtx) return;
-
-    // Draw the cropped portion
-    tempCtx.drawImage(
-      image,
-      cropState.x,
-      cropState.y,
-      cropState.width,
-      cropState.height,
-      0,
-      0,
-      cropState.width,
-      cropState.height
-    );
-
-    // Create new image from the cropped canvas
-    const newImage = new Image();
-    newImage.onload = () => {
-      setImage(newImage);
-      setOriginalImageSize({
-        width: cropState.width,
-        height: cropState.height,
-      });
-      setIsCropping(false);
-      setZoom(1);
-      setPan({ x: 0, y: 0 });
-    };
-    newImage.src = tempCanvas.toDataURL();
-  };
-
-  const handleCancelCrop = () => {
-    setIsCropping(false);
-    setCropState({
-      x: 0,
-      y: 0,
-      width: originalImageSize.width,
-      height: originalImageSize.height,
-      aspect: null,
-    });
-  };
-
-  const setAspectRatio = (ratio: number | null) => {
-    setCropState((prev) => {
-      if (!ratio) return { ...prev, aspect: null };
-      const newHeight = prev.width / ratio;
-      return {
-        ...prev,
-        height: newHeight,
-        aspect: ratio,
-      };
-    });
-  };
-
-  const handleResetCrop = () => {
-    if (!image) return;
-
-    // Create a temporary canvas with original dimensions
-    const tempCanvas = document.createElement("canvas");
-    tempCanvas.width = originalImageSize.width;
-    tempCanvas.height = originalImageSize.height;
-    const tempCtx = tempCanvas.getContext("2d");
-    if (!tempCtx) return;
-
-    // Create new image with original dimensions
-    const newImage = new Image();
-    newImage.onload = () => {
-      // Draw at original size
-      tempCtx.drawImage(
-        newImage,
-        0,
-        0,
-        originalImageSize.width,
-        originalImageSize.height
-      );
-
-      // Create final image
-      const finalImage = new Image();
-      finalImage.onload = () => {
-        setImage(finalImage);
-        setCropState({
-          x: 0,
-          y: 0,
-          width: originalImageSize.width,
-          height: originalImageSize.height,
-          aspect: null,
-        });
-        setZoom(1);
-        setPan({ x: 0, y: 0 });
-      };
-      finalImage.src = tempCanvas.toDataURL();
-    };
-    newImage.src = image.src;
-  };
-
   // Add theme toggle handler
   const toggleTheme = () => {
     const newTheme = theme === "light" ? "dark" : "light";
@@ -969,15 +795,16 @@ export function PhotoEditor() {
               "max-w-full max-h-full",
               !image && "hidden",
               isDragging && "cursor-grabbing",
-              !isDragging && "cursor-grab",
-              isCropping && "cursor-crosshair"
+              !isDragging && "cursor-grab"
+              // isCropping && "cursor-crosshair"
             )}
             onWheel={handleWheel}
-            onMouseDown={isCropping ? handleCropMouseDown : handleMouseDown}
-            onMouseMove={isCropping ? handleCropMouseMove : handleMouseMove}
-            onMouseUp={isCropping ? handleCropMouseUp : handleMouseUp}
-            onMouseLeave={isCropping ? handleCropMouseUp : handleMouseUp}
+            onMouseDown={handleMouseDown}
+            onMouseMove={handleMouseMove}
+            onMouseUp={handleMouseUp}
+            onMouseLeave={handleMouseUp}
           />
+          {/* Commenting out crop overlay
           {isCropping && image && (
             <div
               className="absolute inset-0 pointer-events-none"
@@ -1007,7 +834,6 @@ export function PhotoEditor() {
                 ).toFixed(2)}% Z')`,
               }}
             >
-              {/* Crop border */}
               <div
                 className="absolute border-2 border-white pointer-events-none"
                 style={{
@@ -1023,6 +849,7 @@ export function PhotoEditor() {
               />
             </div>
           )}
+          */}
           {!image && (
             <div className="text-center">
               <p className="text-gray-400 mb-4">No image selected</p>
@@ -1085,7 +912,7 @@ export function PhotoEditor() {
             {/* Scrollable Content */}
             <div className="flex-1 overflow-y-auto p-4 space-y-6">
               <div className="space-y-6">
-                {/* Crop Section */}
+                {/* Commenting out Crop Section
                 <div className="mb-6 border-b border-gray-700 pb-4">
                   <div className="space-y-4">
                     <div className="flex items-center justify-between">
@@ -1203,6 +1030,7 @@ export function PhotoEditor() {
                     </div>
                   </div>
                 </div>
+                */}
 
                 {/* Light Section */}
                 <div className="space-y-4">

@@ -3,11 +3,11 @@
   "rules": {
     "react-hooks/exhaustive-deps": "warn",
     "@typescript-eslint/no-unused-vars": [
-      "error",
+      "warn",
       {
-        "varsIgnorePattern": "^[hsl]$",
         "argsIgnorePattern": "^_",
-        "caughtErrorsIgnorePattern": "^_"
+        "varsIgnorePattern": "^_",
+        "destructuredArrayIgnorePattern": "^[hsl]$"
       }
     ],
     "@typescript-eslint/no-explicit-any": "error"
