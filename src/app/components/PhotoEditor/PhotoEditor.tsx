@@ -1,6 +1,12 @@
 "use client";
 
-import { useState, useRef, useEffect, useLayoutEffect } from "react";
+import {
+  useState,
+  useRef,
+  useEffect,
+  useLayoutEffect,
+  useCallback,
+} from "react";
 import { Slider } from "../../components/ui/Slider";
 import { ColorSlider } from "../../components/ui/ColorSlider";
 import { Button } from "../../components/ui/Button";
@@ -111,7 +117,7 @@ export function PhotoEditor() {
   const cropStartPos = useRef({ x: 0, y: 0 });
   const [isDraggingCrop, setIsDraggingCrop] = useState(false);
 
-  const applyAdjustments = () => {
+  const applyAdjustments = useCallback(() => {
     if (!canvasRef.current || !image) return;
 
     const canvas = canvasRef.current;
@@ -395,7 +401,7 @@ export function PhotoEditor() {
 
     ctx.putImageData(imageData, 0, 0);
     ctx.restore();
-  };
+  }, [image, adjustments, zoom, pan, canvasRef]);
 
   // Initialize debounced function
   useEffect(() => {
@@ -406,7 +412,7 @@ export function PhotoEditor() {
         setIsProcessing(false);
       }
     }, 16); // Approximately 60fps
-  }, [isProcessing]);
+  }, [isProcessing, applyAdjustments]);
 
   const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -565,7 +571,7 @@ export function PhotoEditor() {
 
     window.addEventListener("resize", handleResize);
     return () => window.removeEventListener("resize", handleResize);
-  }, [image, zoom, pan, applyAdjustments]);
+  }, [image, applyAdjustments]);
 
   const toggleSection = (section: "light" | "color" | "effects") => {
     setCollapsedSections((prev) => ({
