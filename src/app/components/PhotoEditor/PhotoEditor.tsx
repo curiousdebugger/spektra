@@ -684,7 +684,7 @@ export function PhotoEditor() {
       {/* Navbar */}
       <div
         className={cn(
-          "h-14 border-b flex items-center px-4",
+          "h-14 border-b flex items-center px-4 shrink-0",
           theme === "dark"
             ? "bg-gray-800 border-gray-700"
             : "bg-white border-gray-200"
@@ -710,11 +710,11 @@ export function PhotoEditor() {
         </div>
       </div>
 
-      <div className="flex flex-1">
+      <div className="flex flex-1 flex-col lg:flex-row relative overflow-hidden">
         {/* Left Sidebar - Tools */}
         <div
           className={cn(
-            "w-16 p-4 flex flex-col gap-4",
+            "lg:w-16 h-14 lg:h-full p-4 flex flex-row lg:flex-col gap-4 shrink-0",
             theme === "dark" ? "bg-gray-800" : "bg-gray-100"
           )}
         >
@@ -744,7 +744,7 @@ export function PhotoEditor() {
             {showSaveDropdown && (
               <div
                 className={cn(
-                  "absolute left-full ml-2 top-0 rounded-md shadow-lg overflow-hidden",
+                  "absolute lg:left-full left-0 top-full lg:top-0 lg:ml-2 mt-2 lg:mt-0 rounded-md shadow-lg overflow-hidden z-50",
                   theme === "dark" ? "bg-gray-700" : "bg-white"
                 )}
               >
@@ -786,7 +786,6 @@ export function PhotoEditor() {
               !image && "hidden",
               isDragging && "cursor-grabbing",
               !isDragging && "cursor-grab"
-              // isCropping && "cursor-crosshair"
             )}
             onWheel={handleWheel}
             onMouseDown={handleMouseDown}
@@ -794,52 +793,6 @@ export function PhotoEditor() {
             onMouseUp={handleMouseUp}
             onMouseLeave={handleMouseUp}
           />
-          {/* Commenting out crop overlay
-          {isCropping && image && (
-            <div
-              className="absolute inset-0 pointer-events-none"
-              style={{
-                backgroundColor: "rgba(0, 0, 0, 0.5)",
-                clipPath: `path('M 0,0 L 100%,0 L 100%,100% L 0,100% L 0,0 Z M ${(
-                  (cropState.x / image.width) *
-                  100
-                ).toFixed(2)}%,${((cropState.y / image.height) * 100).toFixed(
-                  2
-                )}% L ${(
-                  ((cropState.x + cropState.width) / image.width) *
-                  100
-                ).toFixed(2)}%,${((cropState.y / image.height) * 100).toFixed(
-                  2
-                )}% L ${(
-                  ((cropState.x + cropState.width) / image.width) *
-                  100
-                ).toFixed(2)}%,${(
-                  ((cropState.y + cropState.height) / image.height) *
-                  100
-                ).toFixed(2)}% L ${((cropState.x / image.width) * 100).toFixed(
-                  2
-                )}%,${(
-                  ((cropState.y + cropState.height) / image.height) *
-                  100
-                ).toFixed(2)}% Z')`,
-              }}
-            >
-              <div
-                className="absolute border-2 border-white pointer-events-none"
-                style={{
-                  left: `${((cropState.x / image.width) * 100).toFixed(2)}%`,
-                  top: `${((cropState.y / image.height) * 100).toFixed(2)}%`,
-                  width: `${((cropState.width / image.width) * 100).toFixed(
-                    2
-                  )}%`,
-                  height: `${((cropState.height / image.height) * 100).toFixed(
-                    2
-                  )}%`,
-                }}
-              />
-            </div>
-          )}
-          */}
           {!image && (
             <div className="text-center">
               <p className="text-gray-400 mb-4">No image selected</p>
@@ -853,11 +806,13 @@ export function PhotoEditor() {
           )}
         </div>
 
-        {/* Right Sidebar - Adjustments */}
+        {/* Right/Bottom Sidebar - Adjustments */}
         <div
           className={cn(
-            "flex flex-col h-[calc(100vh-3.5rem)] transition-all duration-300 ease-in-out relative",
-            isSidebarCollapsed ? "w-0" : "w-80",
+            "transition-all duration-300 ease-in-out",
+            "lg:h-full h-[60vh] lg:w-80 w-full",
+            "fixed lg:relative bottom-0 left-0 right-0",
+            isSidebarCollapsed ? "lg:w-0 h-0" : "",
             theme === "dark" ? "bg-gray-800" : "bg-gray-100"
           )}
         >
@@ -865,33 +820,28 @@ export function PhotoEditor() {
           <button
             onClick={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
             className={cn(
-              "absolute -left-6 top-1/2 -translate-y-1/2 p-1 rounded-l-md border-l border-t border-b transition-all duration-300 ease-in-out z-50",
+              "absolute lg:-left-6 -top-6 lg:top-1/2 left-1/2 -translate-x-1/2 lg:translate-x-0 lg:-translate-y-1/2",
+              "p-1 rounded-t-md lg:rounded-l-md lg:rounded-tr-none",
+              "border-l border-t border-r lg:border-r-0 lg:border-b",
+              "transition-all duration-300 ease-in-out z-50",
               theme === "dark"
                 ? "bg-gray-800 border-gray-700 hover:bg-gray-700"
                 : "bg-gray-100 border-gray-300 hover:bg-gray-200"
             )}
           >
-            {isSidebarCollapsed ? (
-              <ChevronLeft
-                className={cn(
-                  "h-4 w-4",
-                  theme === "dark" ? "text-gray-400" : "text-gray-600"
-                )}
-              />
-            ) : (
-              <ChevronRight
-                className={cn(
-                  "h-4 w-4",
-                  theme === "dark" ? "text-gray-400" : "text-gray-600"
-                )}
-              />
-            )}
+            <ChevronDown
+              className={cn(
+                "h-4 w-4 transition-transform duration-200 lg:rotate-90",
+                isSidebarCollapsed ? "rotate-180 lg:-rotate-90" : "",
+                theme === "dark" ? "text-gray-400" : "text-gray-600"
+              )}
+            />
           </button>
 
           <div
             className={cn(
-              "flex-1 flex flex-col overflow-hidden transition-all duration-300",
-              isSidebarCollapsed ? "opacity-0 w-0" : "opacity-100 w-full"
+              "flex-1 flex flex-col overflow-hidden transition-all duration-300 h-full",
+              isSidebarCollapsed ? "opacity-0" : "opacity-100"
             )}
           >
             {/* Header */}
