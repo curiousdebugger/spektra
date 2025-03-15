@@ -174,6 +174,7 @@ export function PhotoEditor() {
       let b = data[i + 2];
 
       // Convert to HSL for initial luminance value
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
       const [, , l] = rgbToHsl(r, g, b);
 
       // Apply exposure (affects brightness multiplicatively)
@@ -614,6 +615,7 @@ export function PhotoEditor() {
       let b = data[i + 2];
 
       // Convert to HSL for initial luminance value
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
       const [, , l] = rgbToHsl(r, g, b);
 
       // Apply all adjustments in the same order as the preview
