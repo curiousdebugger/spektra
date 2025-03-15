@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useLayoutEffect } from "react";
 import { Slider } from "../../components/ui/Slider";
 import { ColorSlider } from "../../components/ui/ColorSlider";
 import { Button } from "../../components/ui/Button";
@@ -59,6 +59,7 @@ function debounce<T extends (...args: Parameters<T>) => void>(
 
 export function PhotoEditor() {
   const [theme, setTheme] = useState<"light" | "dark">("dark");
+  const [mounted, setMounted] = useState(false);
   const [image, setImage] = useState<HTMLImageElement | null>(null);
   const [adjustmentHistory, setAdjustmentHistory] = useState<
     AdjustmentValues[]
@@ -92,7 +93,7 @@ export function PhotoEditor() {
 
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const debouncedApplyRef = useRef<() => void>();
+  const debouncedApplyRef = useRef<(() => void) | undefined>(undefined);
 
   const [showSaveDropdown, setShowSaveDropdown] = useState(false);
   const [isCropping, setIsCropping] = useState(false);
@@ -827,18 +828,29 @@ export function PhotoEditor() {
   const toggleTheme = () => {
     const newTheme = theme === "light" ? "dark" : "light";
     setTheme(newTheme);
-    document.documentElement.classList.toggle("dark");
   };
 
   // Initialize theme on mount
   useEffect(() => {
-    if (theme === "dark") {
-      document.documentElement.classList.add("dark");
+    setMounted(true);
+  }, []);
+
+  useLayoutEffect(() => {
+    if (mounted) {
+      if (theme === "dark") {
+        document.documentElement.classList.add("dark");
+      } else {
+        document.documentElement.classList.remove("dark");
+      }
     }
     return () => {
       document.documentElement.classList.remove("dark");
     };
-  }, [theme]);
+  }, [theme, mounted]);
+
+  if (!mounted) {
+    return null; // or a loading state
+  }
 
   return (
     <div
