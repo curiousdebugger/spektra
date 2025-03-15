@@ -9,7 +9,6 @@ import {
   Upload,
   Save,
   Undo,
-  Redo,
   RotateCcw,
   ChevronRight,
   ChevronLeft,
@@ -18,8 +17,6 @@ import {
   Crop as CropIcon,
   Check,
   X,
-  Camera,
-  Palette,
   Sun,
   Moon,
 } from "lucide-react";
@@ -48,8 +45,8 @@ interface CropState {
   aspect: number | null;
 }
 
-// Add debounce utility
-function debounce<T extends (...args: any[]) => void>(
+// Update the debounce function type
+function debounce<T extends (...args: Parameters<T>) => void>(
   func: T,
   wait: number
 ): (...args: Parameters<T>) => void {
@@ -86,7 +83,6 @@ export function PhotoEditor() {
   const [pan, setPan] = useState({ x: 0, y: 0 });
   const [isDragging, setIsDragging] = useState(false);
   const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
-  const lastMousePos = useRef({ x: 0, y: 0 });
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const [collapsedSections, setCollapsedSections] = useState({
     light: false,
@@ -161,9 +157,6 @@ export function PhotoEditor() {
     // Get image data for processing
     const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
     const data = imageData.data;
-
-    // Create a copy of the original data for texture effect
-    const originalData = new Uint8ClampedArray(data);
 
     // Apply adjustments
     for (let i = 0; i < data.length; i += 4) {
@@ -441,7 +434,7 @@ export function PhotoEditor() {
     if (image) {
       applyAdjustments();
     }
-  }, [image, adjustments, zoom, pan]);
+  }, [image, adjustments, zoom, pan, applyAdjustments]);
 
   const handleAdjustmentChange = (
     type: keyof AdjustmentValues,
@@ -571,7 +564,7 @@ export function PhotoEditor() {
 
     window.addEventListener("resize", handleResize);
     return () => window.removeEventListener("resize", handleResize);
-  }, [image, zoom, pan]);
+  }, [image, zoom, pan, applyAdjustments]);
 
   const toggleSection = (section: "light" | "color" | "effects") => {
     setCollapsedSections((prev) => ({
@@ -842,7 +835,10 @@ export function PhotoEditor() {
     if (theme === "dark") {
       document.documentElement.classList.add("dark");
     }
-  }, []);
+    return () => {
+      document.documentElement.classList.remove("dark");
+    };
+  }, [theme]);
 
   return (
     <div
