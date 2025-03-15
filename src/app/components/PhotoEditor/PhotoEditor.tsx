@@ -16,8 +16,6 @@ import {
   Save,
   Undo,
   RotateCcw,
-  ChevronRight,
-  ChevronLeft,
   ChevronDown,
   Image as ImageIcon,
   Sun,
@@ -174,7 +172,6 @@ export function PhotoEditor() {
       let b = data[i + 2];
 
       // Convert to HSL for initial luminance value
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
       const [, , l] = rgbToHsl(r, g, b);
 
       // Apply exposure (affects brightness multiplicatively)
@@ -615,7 +612,6 @@ export function PhotoEditor() {
       let b = data[i + 2];
 
       // Convert to HSL for initial luminance value
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
       const [, , l] = rgbToHsl(r, g, b);
 
       // Apply all adjustments in the same order as the preview
@@ -778,11 +774,17 @@ export function PhotoEditor() {
         </div>
 
         {/* Main Editing Area */}
-        <div className="flex-1 flex items-center justify-center overflow-hidden relative">
+        <div
+          className={cn(
+            "flex-1 flex items-center justify-center overflow-hidden relative",
+            "pb-[60vh] lg:pb-0", // Add padding at bottom on mobile to account for panel height
+            "min-h-[40vh] lg:min-h-0" // Ensure minimum height on mobile
+          )}
+        >
           <canvas
             ref={canvasRef}
             className={cn(
-              "max-w-full max-h-full",
+              "max-w-full max-h-full object-contain",
               !image && "hidden",
               isDragging && "cursor-grabbing",
               !isDragging && "cursor-grab"
@@ -812,8 +814,9 @@ export function PhotoEditor() {
             "transition-all duration-300 ease-in-out",
             "lg:h-full h-[60vh] lg:w-80 w-full",
             "fixed lg:relative bottom-0 left-0 right-0",
+            "z-10", // Ensure panel is above the image
             isSidebarCollapsed ? "lg:w-0 h-0" : "",
-            theme === "dark" ? "bg-gray-800" : "bg-gray-100"
+            theme === "dark" ? "bg-gray-800/95" : "bg-gray-100/95" // Add slight transparency
           )}
         >
           {/* Collapse Toggle Button */}
@@ -841,6 +844,7 @@ export function PhotoEditor() {
           <div
             className={cn(
               "flex-1 flex flex-col overflow-hidden transition-all duration-300 h-full",
+              "backdrop-blur-sm", // Add blur effect to the background
               isSidebarCollapsed ? "opacity-0" : "opacity-100"
             )}
           >
